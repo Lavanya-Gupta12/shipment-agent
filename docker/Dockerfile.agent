@@ -1,0 +1,13 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+ENV AGENT_MODEL=qwen2.5-coder:7b
+ENV OLLAMA_HOST=http://host.docker.internal:11434
+
+ENTRYPOINT ["python", "agent/main.py"]

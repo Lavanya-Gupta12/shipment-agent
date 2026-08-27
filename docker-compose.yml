@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - DYNAMODB_SHIPMENTS_TABLE=${DYNAMODB_SHIPMENTS_TABLE:-shipment-agent-shipments}
+      - DYNAMODB_PORTS_TABLE=${DYNAMODB_PORTS_TABLE:-shipment-agent-ports}
+      - AGENT_MODEL=qwen2.5-coder:7b
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+# Ollama must be running on the host with the model pulled first:
+#   ollama pull qwen2.5-coder:7b
+# AWS resources must exist first:
+#   python scripts/setup_aws.py
+# Then: curl -X POST http://localhost:8000/shipments/MAEU1234567/investigate

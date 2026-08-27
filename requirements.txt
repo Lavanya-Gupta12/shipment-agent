@@ -1,0 +1,11 @@
+mcp==1.2.0
+ollama==0.3.3
+boto3==1.35.0
+requests==2.32.3
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+
+# testing
+pytest==8.3.3
+moto[dynamodb,s3]==5.0.13
