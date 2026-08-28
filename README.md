@@ -143,7 +143,7 @@ pytest tests/ -v
 - `test_agent_state.py` — the guardrail that blocks "finish" without required AWS steps
 - `test_core.py` — DynamoDB/S3 behavior, mocked with `moto` (free, no real AWS account needed) so this runs in CI without secrets
 
-## What to say in interviews
+## Important Notes
 
 - "Tool selection is dynamic — the agent decides which signal to
   investigate first based on the shipment's actual state, not a fixed order."
