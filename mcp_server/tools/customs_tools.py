@@ -15,5 +15,5 @@ def check_customs_status(container_id: str) -> str:
         return f"No shipment found with container_id {container_id}"
     flag = item.get("flag_reason", "none")
     if flag == "customs_hold_flagged":
-        return f"{container_id}: CUSTOMS HOLD — flagged for documentation review at destination port"
+        return f"{container_id}: CUSTOMS HOLD - flagged for documentation review at destination port"
     return f"{container_id}: no customs issues, cleared"

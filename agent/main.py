@@ -25,18 +25,36 @@ from state import AgentState
 SERVER_SCRIPT = os.path.join(os.path.dirname(__file__), "..", "mcp_server", "server.py")
 SERVER_CWD = os.path.join(os.path.dirname(__file__), "..", "mcp_server")
 
-
 def format_tool_list(tools) -> str:
-    return "\n".join(f"- {t.name}: {t.description}" for t in tools)
+    lines = []
+    for t in tools:
+        schema = getattr(t, "inputSchema", None) or {}
+        props = schema.get("properties", {})
+        required = schema.get("required", [])
+        if props:
+            args_str = ", ".join(
+                f"{name}{'*' if name in required else ''}: {info.get('type', 'any')}"
+                for name, info in props.items()
+            )
+            lines.append(f"- {t.name}({args_str}): {t.description}")
+        else:
+            lines.append(f"- {t.name}(): {t.description}")
+    return "\n".join(lines)
+
 
 
 async def run_agent(container_id: str, verbose: bool = True) -> dict:
-    server_params = StdioServerParameters(
-        command="python",
-        args=[SERVER_SCRIPT],
-        cwd=SERVER_CWD,
-    )
+    subprocess_env = os.environ.copy()
+    subprocess_env["PYTHONIOENCODING"] = "utf-8"
+    subprocess_env["PYTHONUTF8"] = "1"
 
+    server_params = StdioServerParameters(
+    command=sys.executable,
+    args=[SERVER_SCRIPT],
+    cwd=SERVER_CWD,
+    env=subprocess_env,
+)
+   
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
@@ -45,7 +63,7 @@ async def run_agent(container_id: str, verbose: bool = True) -> dict:
             tool_list_text = format_tool_list(tools_result.tools)
             tool_names = {t.name for t in tools_result.tools}
 
-            system_prompt = SYSTEM_PROMPT.format(tool_list=tool_list_text)
+            system_prompt = SYSTEM_PROMPT.format(tool_list=tool_list_text, container_id=container_id)
             state = AgentState(max_iterations=10)
 
             if verbose:
@@ -53,10 +71,6 @@ async def run_agent(container_id: str, verbose: bool = True) -> dict:
                 print(f"Investigating container: {container_id}")
                 print(f"Discovered {len(tool_names)} tools:\n{tool_list_text}\n")
 
-            state.record(
-                "system_note", {}, "context",
-                f"Investigate container_id={container_id}. Start with get_shipment_details.",
-            )
 
             while not state.finished and state.iteration < state.max_iterations:
                 state.iteration += 1
