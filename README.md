@@ -109,12 +109,11 @@ maersk-shipment-agent/
 
 ## Setup
 
-```bash
-# 1. AWS credentials (free tier covers this)
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
-export AWS_REGION=ap-south-1
-export AWS_S3_BUCKET=your-unique-bucket-name
+### One-time setup (only do this once)
+
+\`\`\`bash
+# 1. AWS credentials (free tier covers this) — fill these into .env
+# edit .env with your AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET, AGENT_MODEL, DYNAMODB Tables
 
 # 2. Ollama
 ollama pull qwen2.5-coder:7b
@@ -123,15 +122,35 @@ ollama pull qwen2.5-coder:7b
 pip install -r requirements.txt
 
 # 4. Create AWS resources + seed synthetic shipment data
+export $(cat .env | xargs)
 python scripts/setup_aws.py
+\`\`\`
 
+### Every time you reopen the project
+
+Environment variables don't persist between terminal sessions, so reload them each time:
+
+\`\`\`bash
+source .venv/Scripts/activate      # or .venv/bin/activate on Mac/Linux
+export $(cat .env | xargs)
+\`\`\`
+
+Then run the agent:
+
+\`\`\`bash
 # 5a. Run the agent directly (CLI)
 python agent/main.py --container-id MAEU1234567
 
 # 5b. OR run the API and trigger it over HTTP
 uvicorn api.main:app --reload
 curl -X POST http://localhost:8000/shipments/MAEU1234567/investigate
-```
+\`\`\`
+
+Reset demo data back to its original seeded state anytime with:
+\`\`\`bash
+python scripts/setup_aws.py
+\`\`\`
+
 
 ## Testing
 
